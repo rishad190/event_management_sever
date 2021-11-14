@@ -10,8 +10,7 @@ app.use(cors());
 
 const port = 5000;
 const { MongoClient } = require("mongodb");
-const uri =
-  "mongodb+srv://rishad:abc123a@cluster0.pv2sf.mongodb.net/event_data?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.pv2sf.mongodb.net/${process.env.DB_DATA}?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -23,7 +22,8 @@ app.get("/", (req, res) => {
 client.connect((err) => {
   const users = client.db("event_data").collection("users");
   const events = client.db("event_data").collection("events");
-  // perform actions on the collection object
+  const eventsBook = client.db("event_data").collection("book");
+
   app.post("/users", (req, res) => {
     users.insertOne(req.body).then((result) => {
       res.send(result.acknowledged);
@@ -50,6 +50,17 @@ client.connect((err) => {
   app.get("/events/:id", (req, res) => {
     events.findOne({ _id: ObjectId(req.params.id) }).then((result) => {
       res.send(result);
+    });
+  });
+  /////////////////////////////////////////////////////////
+  app.post("/eventsBook", (req, res) => {
+    eventsBook.insertOne(req.body).then((result) => {
+      res.send(result.acknowledged);
+    });
+  });
+  app.get("/eventsBook", (req, res) => {
+    eventsBook.find({}).toArray((err, doc) => {
+      res.send(doc);
     });
   });
 });
